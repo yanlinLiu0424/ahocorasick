@@ -2,7 +2,6 @@ package ahocorasick
 
 import (
 	"bytes"
-	"fmt"
 )
 
 type MatchedHandler func(id uint, from, to uint64) error
@@ -47,9 +46,6 @@ func NewACKS() *ACKS {
 }
 
 func (ac *ACKS) AddPattern(p Pattern) error {
-	if p.ID == 0 {
-		return fmt.Errorf("pattern ID cannot be 0")
-	}
 	p.strlen = len(p.Content)
 	ac.patterns = append(ac.patterns, p)
 
@@ -253,9 +249,6 @@ func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 	}
 
 	for i, b := range text {
-		if b >= 128 {
-			return fmt.Errorf("text contains non-ASCII character: %c", b)
-		}
 		tc := ac.translateTable[b]
 
 		// O(1) transition

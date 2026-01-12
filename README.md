@@ -9,6 +9,12 @@ Package `ahocorasick` provides a high-performance implementation of the Aho-Cora
 *   **Cons**: Higher memory usage and slower build times due to dense table construction.
 *   **Best For**: High-throughput applications where search speed is the top priority.
 
+## Installation
+
+```bash
+go get github.com/yanlinLiu0424/ahocorasick
+```
+
 ## Features
 
 *   **Case-Insensitive Matching**: Supports ASCII case-insensitive matching via the `Caseless` flag.
@@ -27,7 +33,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/yanlinLiu0424/ac" // Assumes package name is ahocorasick
+	"github.com/yanlinLiu0424/ahocorasick"
 )
 
 func main() {
