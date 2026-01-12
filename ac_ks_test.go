@@ -119,7 +119,7 @@ func sortSlice(s []uint) {
 
 func BenchmarkACKS_Search_FixedPatterns(b *testing.B) {
 	ac := NewACKS()
-	numPatterns := 5000000
+	numPatterns := 50000
 	for i := 0; i < numPatterns; i++ {
 		s := fmt.Sprintf("FixedString%d", i)
 		_ = ac.AddPattern(mkPat(s, uint(i+1), Caseless))
