@@ -20,7 +20,6 @@ go get github.com/yanlinLiu0424/ahocorasick
 *   **Case-Insensitive Matching**: Supports ASCII case-insensitive matching via the `Caseless` flag.
 *   **Single Match Mode**: Option to report a pattern ID only the first time it is found using the `SingleMatch` flag.
 *   **Zero-Allocation Scan**: The `Scan` method processes matches via a callback handler, preventing memory allocations associated with result slices.
-*   **ASCII Optimized**: Explicitly checks and optimizes for ASCII input (returns an error for non-ASCII bytes).
 
 ## Usage
 
