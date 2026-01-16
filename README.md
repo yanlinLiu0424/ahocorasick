@@ -80,5 +80,14 @@ func main() {
 ```
 
 ## Performance
-
 Benchmarks are included in the test files. `ACKS` provides high search throughput due to its branch-free state transition logic, making it ideal for read-heavy workloads.
+
+Here are a few benchmark results 
+
+```
+cpu: 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz
+
+BenchmarkACKS_Search_FixedPatterns_50000-8   	   42331	     27856 ns/op	       0 B/op	       0 allocs/op
+BenchmarkACKS_Search_RandomPatterns_10000-8   	   60590	     18217 ns/op	       0 B/op	       0 allocs/op
+```
+

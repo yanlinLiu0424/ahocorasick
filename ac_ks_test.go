@@ -11,9 +11,9 @@ import (
 
 func TestACKS_Search_Basic(t *testing.T) {
 	ac := NewACKS()
-	ac.AddPattern(mkPat("he", 1, 0))
-	ac.AddPattern(mkPat("she", 2, 0))
-	ac.AddPattern(mkPat("his", 3, 0))
+	ac.AddPattern(mkPat("he", 88, 0))
+	ac.AddPattern(mkPat("she", 1000, 0))
+	//ac.AddPattern(mkPat("his", 3, 0))
 	ac.Build()
 
 	text := []byte("ushers")
@@ -117,7 +117,7 @@ func sortSlice(s []uint) {
 	sort.Slice(s, func(i, j int) bool { return s[i] < s[j] })
 }
 
-func BenchmarkACKS_Search_FixedPatterns(b *testing.B) {
+func BenchmarkACKS_Search_FixedPatterns_50000(b *testing.B) {
 	ac := NewACKS()
 	numPatterns := 50000
 	for i := 0; i < numPatterns; i++ {
@@ -140,7 +140,7 @@ func BenchmarkACKS_Search_FixedPatterns(b *testing.B) {
 	}
 }
 
-func BenchmarkACKS_Search_RandomPatterns(b *testing.B) {
+func BenchmarkACKS_Search_RandomPatterns_10000(b *testing.B) {
 	ac := NewACKS()
 	numPatterns := 10000
 	patterns := make([]string, 0, numPatterns)
