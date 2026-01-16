@@ -87,7 +87,7 @@ Here are a few benchmark results
 ```
 cpu: 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz
 
-BenchmarkACKS_Search_FixedPatterns_50000-8   	   42331	     27856 ns/op	       0 B/op	       0 allocs/op
-BenchmarkACKS_Search_RandomPatterns_10000-8   	   60590	     18217 ns/op	       0 B/op	       0 allocs/op
+BenchmarkACKS_Search_FixedPatterns_50000  	   65344	     18293 ns/op	       0 B/op	       0 allocs/op
+BenchmarkACKS_Search_RandomPatterns_10000      85358	     14388 ns/op	       0 B/op	       0 allocs/op
 ```
 
