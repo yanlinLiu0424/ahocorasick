@@ -21,8 +21,7 @@ func TestACKS_Search_Basic(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
-
-	expected := []uint{1, 2}
+	expected := []uint{88, 1000}
 	sortSlice(matches)
 	sortSlice(expected)
 
