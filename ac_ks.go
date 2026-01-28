@@ -263,11 +263,7 @@ func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 
 		// O(1) transition
 		idx := currentState*ac.alphabetSize + int(tc)
-		if idx >= len(ac.stateTable) {
-			currentState = 0
-		} else {
-			currentState = int(ac.stateTable[idx])
-		}
+		currentState = int(ac.stateTable[idx])
 
 		// Check outputs
 		if ac.stateHasOutput[currentState] {

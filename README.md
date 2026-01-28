@@ -86,7 +86,7 @@ Here are a few benchmark results
 
 ```
 
-BenchmarkACKS_Search_FixedPatterns_50000 	   68469	     16671 ns/op	       0 B/op	       0 allocs/op
-BenchmarkACKS_Search_RandomPatterns_10000 	   97682	     13102 ns/op	       0 B/op	       0 allocs/op
+BenchmarkACKS_Search_FixedPatterns_50000 	   81777	     13575 ns/op	       0 B/op	       0 allocs/op
+BenchmarkACKS_Search_RandomPatterns_10000 	   87286	     11892 ns/op	       0 B/op	       0 allocs/op
 ```
 
