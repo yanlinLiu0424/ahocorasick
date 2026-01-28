@@ -130,12 +130,11 @@ func BenchmarkACKS_Search_FixedPatterns_50000(b *testing.B) {
 		buffer.WriteString(fmt.Sprintf("noise_FixedString%d_data ", i%numPatterns))
 	}
 	text := buffer.Bytes()
-
 	b.ReportAllocs()
 	b.ResetTimer()
-	handler := MatchedHandler(func(id uint, from, to uint64) error { return nil })
+	//handler := MatchedHandler(func(id uint, from, to uint64) error { return nil })
 	for i := 0; i < b.N; i++ {
-		_ = ac.Scan(text, handler)
+		_ = ac.Scan(text, nil)
 	}
 }
 

@@ -5,7 +5,7 @@ import (
 )
 
 type MatchedHandler func(id uint, from, to uint64) error
-type matchedPattern func(pos uint64, ps Pattern) error
+type matchedPattern func(pos uint64, ps *Pattern) error
 
 type Flag uint
 
@@ -23,7 +23,7 @@ type Pattern struct {
 
 // ACKS represents the Aho-Corasick Ken Steele matcher
 type ACKS struct {
-	patterns       []Pattern
+	patterns       []*Pattern
 	translateTable [256]uint8
 	alphabetSize   int
 
@@ -33,6 +33,7 @@ type ACKS struct {
 	// outputTable stores pattern IDs for each state.
 	// Using a slice of slices for O(1) access by state index.
 	outputTable    [][]int
+	stateHasOutput []bool // Fast check to avoid slice header access
 	size           int
 	maxID          uint
 	stateCount     int
@@ -47,7 +48,8 @@ func NewACKS() *ACKS {
 
 func (ac *ACKS) AddPattern(p Pattern) error {
 	p.strlen = len(p.Content)
-	ac.patterns = append(ac.patterns, p)
+	newP := p
+	ac.patterns = append(ac.patterns, &newP)
 
 	if p.Flags&SingleMatch > 0 {
 		ac.hasSingleMatch = true
@@ -202,11 +204,19 @@ func (ac *ACKS) buildStateMachine() {
 			ac.stateTable[state*ac.alphabetSize+charIdx] = int32(nextState)
 		}
 	}
+
+	// 4. Build fast output check table
+	ac.stateHasOutput = make([]bool, ac.stateCount)
+	for i, out := range ac.outputTable {
+		if len(out) > 0 {
+			ac.stateHasOutput[i] = true
+		}
+	}
 }
 
 func (ac *ACKS) Search(text []byte) ([]uint, error) {
 	matches := make([]uint, 0, ac.size)
-	h := func(pos uint64, ps Pattern) error {
+	h := func(pos uint64, ps *Pattern) error {
 		matches = append(matches, ps.ID)
 		return nil
 	}
@@ -218,7 +228,10 @@ func (ac *ACKS) Search(text []byte) ([]uint, error) {
 }
 
 func (ac *ACKS) Scan(text []byte, m MatchedHandler) error {
-	h := func(pos uint64, ps Pattern) error {
+	h := func(pos uint64, ps *Pattern) error {
+		if m == nil {
+			return nil
+		}
 		err := m(ps.ID, 0, pos)
 		if err != nil {
 			return err
@@ -236,10 +249,8 @@ func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 	currentState := 0
 	const maxSliceSize = 16 * 1024 * 1024
 	useSlice := ac.maxID <= maxSliceSize
-
 	var recordSlice []uint64
 	var recordMap map[uint]struct{}
-
 	if ac.hasSingleMatch {
 		if useSlice {
 			recordSlice = make([]uint64, (ac.maxID/64)+1)
@@ -247,7 +258,6 @@ func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 			recordMap = make(map[uint]struct{})
 		}
 	}
-
 	for i, b := range text {
 		tc := ac.translateTable[b]
 
@@ -260,9 +270,9 @@ func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 		}
 
 		// Check outputs
-		if len(ac.outputTable[currentState]) > 0 {
+		if ac.stateHasOutput[currentState] {
 			for _, id := range ac.outputTable[currentState] {
-				pat := &ac.patterns[id]
+				pat := ac.patterns[id]
 				if pat.Flags&SingleMatch > 0 {
 					if useSlice {
 						idx := pat.ID / 64
@@ -280,13 +290,13 @@ func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 				}
 
 				if pat.Flags&Caseless > 0 {
-					err := matched(uint64(i+1), *pat)
+					err := matched(uint64(i+1), pat)
 					if err != nil {
 						return err
 					}
 				} else {
 					if memcmp(pat.Content, text[i-pat.strlen+1:], pat.strlen) {
-						err := matched(uint64(i+1), *pat)
+						err := matched(uint64(i+1), pat)
 						if err != nil {
 							return err
 						}
