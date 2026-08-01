@@ -21,9 +21,14 @@ type Pattern struct {
 	strlen  int
 }
 
+type patternwithID struct {
+	*Pattern
+	id uint
+}
+
 // ACKS represents the Aho-Corasick Ken Steele matcher
 type ACKS struct {
-	patterns       []*Pattern
+	patterns       []*patternwithID
 	translateTable [256]uint8
 	alphabetSize   int
 
@@ -35,7 +40,6 @@ type ACKS struct {
 	outputTable    [][]int
 	stateHasOutput []bool // Fast check to avoid slice header access
 	size           int
-	maxID          uint
 	stateCount     int
 	hasSingleMatch bool
 }
@@ -48,16 +52,18 @@ func NewACKS() *ACKS {
 
 func (ac *ACKS) AddPattern(p Pattern) error {
 	p.strlen = len(p.Content)
-	newP := p
+	newP := patternwithID{
+		Pattern: &p,
+		id:      uint(len(ac.patterns)),
+	}
+
 	ac.patterns = append(ac.patterns, &newP)
 
 	if p.Flags&SingleMatch > 0 {
 		ac.hasSingleMatch = true
 	}
 	ac.size = len(ac.patterns)
-	if p.ID > ac.maxID {
-		ac.maxID = p.ID
-	}
+
 	return nil
 }
 
@@ -247,16 +253,9 @@ func (ac *ACKS) Scan(text []byte, m MatchedHandler) error {
 
 func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 	currentState := 0
-	const maxSliceSize = 16 * 1024 * 1024
-	useSlice := ac.maxID <= maxSliceSize
 	var recordSlice []uint64
-	var recordMap map[uint]struct{}
 	if ac.hasSingleMatch {
-		if useSlice {
-			recordSlice = make([]uint64, (ac.maxID/64)+1)
-		} else {
-			recordMap = make(map[uint]struct{})
-		}
+		recordSlice = make([]uint64, (ac.size/64)+1)
 	}
 	for i, b := range text {
 		tc := ac.translateTable[b]
@@ -268,31 +267,24 @@ func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 		// Check outputs
 		if ac.stateHasOutput[currentState] {
 			for _, id := range ac.outputTable[currentState] {
-				pat := ac.patterns[id]
-				if pat.Flags&SingleMatch > 0 {
-					if useSlice {
-						idx := pat.ID / 64
-						mask := uint64(1) << (pat.ID % 64)
-						if recordSlice[idx]&mask != 0 {
-							continue
-						}
-						recordSlice[idx] |= mask
-					} else {
-						if _, exists := recordMap[pat.ID]; exists {
-							continue
-						}
-						recordMap[pat.ID] = struct{}{}
+				p := ac.patterns[id]
+				if p.Flags&SingleMatch > 0 {
+					idx := p.id / 64
+					mask := uint64(1) << (p.id % 64)
+					if recordSlice[idx]&mask != 0 {
+						continue
 					}
+					recordSlice[idx] |= mask
 				}
 
-				if pat.Flags&Caseless > 0 {
-					err := matched(uint64(i+1), pat)
+				if p.Flags&Caseless > 0 {
+					err := matched(uint64(i+1), p.Pattern)
 					if err != nil {
 						return err
 					}
 				} else {
-					if memcmp(pat.Content, text[i-pat.strlen+1:], pat.strlen) {
-						err := matched(uint64(i+1), pat)
+					if memcmp(p.Content, text[i-p.strlen+1:], p.strlen) {
+						err := matched(uint64(i+1), p.Pattern)
 						if err != nil {
 							return err
 						}
