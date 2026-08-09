@@ -253,9 +253,9 @@ func (ac *ACKS) Scan(text []byte, m MatchedHandler) error {
 
 func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 	currentState := 0
-	var recordSlice []uint64
+	var recordSlice []uint8
 	if ac.hasSingleMatch {
-		recordSlice = make([]uint64, (ac.size/64)+1)
+		recordSlice = make([]uint8, (ac.size/8)+1)
 	}
 	for i, b := range text {
 		tc := ac.translateTable[b]
@@ -269,8 +269,8 @@ func (ac *ACKS) searchPatterns(text []byte, matched matchedPattern) error {
 			for _, id := range ac.outputTable[currentState] {
 				p := ac.patterns[id]
 				if p.Flags&SingleMatch > 0 {
-					idx := p.id / 64
-					mask := uint64(1) << (p.id % 64)
+					idx := p.id / 8
+					mask := uint8(1) << (p.id % 8)
 					if recordSlice[idx]&mask != 0 {
 						continue
 					}
